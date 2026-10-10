@@ -14,7 +14,7 @@ proc import datafile='/home/u64571875/Trabalho_Amostragem/amostras/amostras_xlsx
 dbms=xlsx out=amostra4_raw replace;
 run;
 
-%macro padronizar_nome(dados_entrada, dados_saida);
+%macro padronizar_nome(dados_entrada, dados_saida, tipo_pesq);
 	data &dados_saida (rename = (
 		'Faixa de Renda Familiar'n   = faixa_renda
 		'Faixa etária'n              = faixa_etária
@@ -22,13 +22,15 @@ run;
 		'Candidato à Governador DF'n = cand_governador
 		));
 	set &dados_entrada;	
+	length tipo_pesquisa $ 20;
+	tipo_pesquisa = &tipo_pesq;
 	run;
 %mend;
 
-%padronizar_nome(amostra1_raw, amostra1)
-%padronizar_nome(amostra2_raw, amostra2)
-%padronizar_nome(amostra3_raw, amostra3)
-%padronizar_nome(amostra4_raw, amostra4)
+%padronizar_nome(amostra1_raw, amostra1, 'Estimulada')
+%padronizar_nome(amostra2_raw, amostra2, 'Estimulada')
+%padronizar_nome(amostra3_raw, amostra3, 'Não Estimulada')
+%padronizar_nome(amostra4_raw, amostra4, 'Não Estimulada')
 
 data amostra_estimulada;
 	set amostra1 amostra2;
