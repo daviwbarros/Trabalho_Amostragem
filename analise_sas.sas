@@ -17,7 +17,7 @@ run;
 %macro padronizar_nome(dados_entrada, dados_saida, tipo_pesq);
 	data &dados_saida (rename = (
 		'Faixa de Renda Familiar'n   = faixa_renda
-		'Faixa etária'n              = faixa_etária
+		'Faixa etária'n              = faixa_etaria
 		'Candidato a presidência'n   = cand_presidencia
 		'Candidato à Governador DF'n = cand_governador
 		));
@@ -36,26 +36,25 @@ data amostra_total;
 	set amostra1 amostra2 amostra3 amostra4;
 run;
 
-proc freq data = amostra_total order = freq;
-tables cand_presidencia;
-run;
-
-proc surveyfreq data=amostra_total;
+proc surveyfreq data=amostra_total order=freq;
 tables cand_presidencia / var cl;
 run;
-
 
 proc surveyfreq data=amostra_total;
 tables sexo * cand_presidencia / row cl;
 run;
+
 proc surveymeans data=amostra_total var clm;
 var cand_presidencia;
 domain sexo;
 run;
 
+proc surveyfreq data=amostra_total;
+tables faixa_renda * cand_presidencia / row cl;
+run;
 
 proc surveyfreq data=amostra_total;
-tables faixa_renda * cand_presidencia / var cl;
+tables faixa_etaria * cand_presidencia / row cl;
 run;
 
 
