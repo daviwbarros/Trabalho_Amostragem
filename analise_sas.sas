@@ -44,9 +44,9 @@ proc surveyfreq data=amostra_total;
 tables cand_presidencia / var cl;
 run;
 
-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+/*aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 
-asdasd
+asdasd*/ 
 
 
 
