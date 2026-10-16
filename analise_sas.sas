@@ -44,6 +44,7 @@ proc surveyfreq data=amostra_total;
 tables cand_presidencia / var cl;
 run;
 
+
 proc surveyfreq data=amostra_total;
 tables sexo * cand_presidencia / row cl;
 run;
