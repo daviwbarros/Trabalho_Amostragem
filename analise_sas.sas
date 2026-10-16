@@ -36,7 +36,7 @@ data amostra_total;
 	set amostra1 amostra2 amostra3 amostra4;
 run;
 
-proc freq data = amostra_total;
+proc freq data = amostra_total order = freq;
 tables cand_presidencia;
 run;
 
@@ -44,12 +44,18 @@ proc surveyfreq data=amostra_total;
 tables cand_presidencia / var cl;
 run;
 
-/*aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+proc surveyfreq data=amostra_total;
+tables sexo * cand_presidencia / var cl;
+run;
+proc surveymeans data=amostra_total var clm;
+var cand_presidencia;
+domain sexo;
+run;
 
-asdasd*/ 
 
-
-
+proc surveyfreq data=amostra_total;
+tables faixa_renda * cand_presidencia / var cl;
+run;
 
 
 
