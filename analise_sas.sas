@@ -45,7 +45,7 @@ tables cand_presidencia / var cl;
 run;
 
 proc surveyfreq data=amostra_total;
-tables sexo * cand_presidencia / var cl;
+tables sexo * cand_presidencia / row cl;
 run;
 proc surveymeans data=amostra_total var clm;
 var cand_presidencia;
