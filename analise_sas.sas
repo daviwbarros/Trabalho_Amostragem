@@ -70,6 +70,11 @@ run;
 
 %tabela_pesquisa(amostra_total, sexo, cand_presidencia)
 %tabela_pesquisa(amostra_total, faixa_renda, cand_presidencia)
+%tabela_pesquisa(amostra_total, faixa_etaria, cand_presidencia)
+
+%tabela_pesquisa(amostra_total, sexo, cand_governador)
+%tabela_pesquisa(amostra_total, faixa_renda, cand_governador)
+%tabela_pesquisa(amostra_total, faixa_etaria, cand_governador)
 
 
 proc surveymeans data=amostra_total var clm;
@@ -77,53 +82,19 @@ var cand_presidencia;
 domain sexo;
 run;
 
-proc surveyfreq data=amostra_total;
-tables faixa_renda * cand_presidencia / row cl;
-run;
+/* 1. Define o local e o nome do arquivo PDF que será gerado */
+/* O uso de ~/ garante compatibilidade entre os membros da equipe no SAS Studio */
+ods pdf file="~/Trabalho_Amostragem/Resultados/Relatorio_Eleitoral.pdf" style=Pearl pdftoc=1;
 
-ods output Crosstabs = resultados_fe;
-proc surveyfreq data=amostra_total;
-    tables faixa_etaria * cand_presidencia / row cl;
-run;
+title "Análise Eleitoral - Distribuição por Faixa Etária";
+%tabela_pesquisa(amostra_total, faixa_etaria, cand_presidencia);
 
-data dados_tabela_fe;
-    set resultados_fe;
-        RowVar = RowStdErr**2;
-run;
+title "Análise Eleitoral - Distribuição por Sexo";
+%tabela_pesquisa(amostra_total, sexo, cand_presidencia);
 
-proc tabulate data=dados_tabela_fe format=6.2;
-    class faixa_etaria cand_presidencia;
-    var RowPercent RowVar RowLowerCL RowUpperCL;
-    
-    table faixa_etaria,
-          cand_presidencia * (
-              RowPercent='Prop (%)'*sum='' 
-              RowVar='Var'*sum='' 
-              RowLowerCL='IC Inf'*sum='' 
-              RowUpperCL='IC Sup'*sum=''
-          );
-run;
+title "Análise Eleitoral - Distribuição por Renda";
+%tabela_pesquisa(amostra_total, faixa_renda, cand_presidencia);
 
-ods output Crosstabs = resultados_fr;
-proc surveyfreq data=amostra_total;
-    tables faixa_etaria * cand_presidencia / row cl;
-run;
+ods pdf close;
 
-data dados_tabela_fr;
-    set resultados_fe;
-        RowVar = RowStdErr**2;
-run;
-
-proc tabulate data=dados_tabela_fe format=6.2;
-    class faixa_etaria cand_presidencia;
-    var RowPercent RowVar RowLowerCL RowUpperCL;
-    
-    table faixa_etaria,
-          cand_presidencia * (
-              RowPercent='Prop (%)'*sum='' 
-              RowVar='Var'*sum='' 
-              RowLowerCL='IC Inf'*sum='' 
-              RowUpperCL='IC Sup'*sum=''
-          );
-run;
 
