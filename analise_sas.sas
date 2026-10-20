@@ -40,28 +40,27 @@ proc surveyfreq data=amostra_total order=freq;
 tables cand_presidencia / var cl;
 run;
 
-
 %macro tabela_pesquisa(dados, var_linha, var_coluna);
 ods output Crosstabs = resultados;
 proc surveyfreq data=&dados;
-    tables &var_linha * &var_coluna / row cl;
+    tables &var_coluna * &var_linha / col cl;
 run;
 
 data dados_tabela;
     set resultados;
-        RowVar = RowStdErr**2;
+        ColVar = ColStdErr**2;
 run;
 
 proc tabulate data=dados_tabela format=6.2;
     class &var_linha &var_coluna;
-    var RowPercent RowVar RowLowerCL RowUpperCL;
+    var ColPercent ColVar ColLowerCL ColUpperCL;
     
-    table &var_linha,
-          &var_coluna * (
-              RowPercent='Prop (%)'*sum='' 
-              RowVar='Var'*sum='' 
-              RowLowerCL='IC Inf'*sum='' 
-              RowUpperCL='IC Sup'*sum=''
+    table &var_coluna,
+          &var_linha * (
+              ColPercent='Prop (%)'*sum='' 
+              ColVar='Var'*sum='' 
+              ColLowerCL='IC Inf'*sum='' 
+              ColUpperCL='IC Sup'*sum=''
           );
 run;
 proc delete data=dados_tabela resultados; 
@@ -82,17 +81,19 @@ var cand_presidencia;
 domain sexo;
 run;
 
+
+options orientation=landscape;
 /* 1. Define o local e o nome do arquivo PDF que será gerado */
 /* O uso de ~/ garante compatibilidade entre os membros da equipe no SAS Studio */
 ods pdf file="~/Trabalho_Amostragem/Resultados/Relatorio_Eleitoral.pdf" style=Pearl pdftoc=1;
 
-title "Análise Eleitoral - Distribuição por Faixa Etária";
+title "Intenção de Voto para Presidente - Distribuição por Faixa Etária";
 %tabela_pesquisa(amostra_total, faixa_etaria, cand_presidencia);
 
-title "Análise Eleitoral - Distribuição por Sexo";
+title "Intenção de Voto para Presidente - Distribuição por Sexo";
 %tabela_pesquisa(amostra_total, sexo, cand_presidencia);
 
-title "Análise Eleitoral - Distribuição por Renda";
+title "Intenção de Voto para Presidente - Distribuição por Renda";
 %tabela_pesquisa(amostra_total, faixa_renda, cand_presidencia);
 
 ods pdf close;
