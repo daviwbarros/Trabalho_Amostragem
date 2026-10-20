@@ -40,9 +40,37 @@ proc surveyfreq data=amostra_total order=freq;
 tables cand_presidencia / var cl;
 run;
 
-proc surveyfreq data=amostra_total;
-tables sexo * cand_presidencia / row cl;
+
+%macro tabela_pesquisa(dados, var_linha, var_coluna);
+ods output Crosstabs = resultados;
+proc surveyfreq data=&dados;
+    tables &var_linha * &var_coluna / row cl;
 run;
+
+data dados_tabela;
+    set resultados;
+        RowVar = RowStdErr**2;
+run;
+
+proc tabulate data=dados_tabela format=6.2;
+    class &var_linha &var_coluna;
+    var RowPercent RowVar RowLowerCL RowUpperCL;
+    
+    table &var_linha,
+          &var_coluna * (
+              RowPercent='Prop (%)'*sum='' 
+              RowVar='Var'*sum='' 
+              RowLowerCL='IC Inf'*sum='' 
+              RowUpperCL='IC Sup'*sum=''
+          );
+run;
+proc delete data=dados_tabela resultados; 
+run;
+%mend;
+
+%tabela_pesquisa(amostra_total, sexo, cand_presidencia)
+%tabela_pesquisa(amostra_total, faixa_renda, cand_presidencia)
+
 
 proc surveymeans data=amostra_total var clm;
 var cand_presidencia;
@@ -53,9 +81,49 @@ proc surveyfreq data=amostra_total;
 tables faixa_renda * cand_presidencia / row cl;
 run;
 
+ods output Crosstabs = resultados_fe;
 proc surveyfreq data=amostra_total;
-tables faixa_etaria * cand_presidencia / row cl;
+    tables faixa_etaria * cand_presidencia / row cl;
 run;
 
+data dados_tabela_fe;
+    set resultados_fe;
+        RowVar = RowStdErr**2;
+run;
 
+proc tabulate data=dados_tabela_fe format=6.2;
+    class faixa_etaria cand_presidencia;
+    var RowPercent RowVar RowLowerCL RowUpperCL;
+    
+    table faixa_etaria,
+          cand_presidencia * (
+              RowPercent='Prop (%)'*sum='' 
+              RowVar='Var'*sum='' 
+              RowLowerCL='IC Inf'*sum='' 
+              RowUpperCL='IC Sup'*sum=''
+          );
+run;
+
+ods output Crosstabs = resultados_fr;
+proc surveyfreq data=amostra_total;
+    tables faixa_etaria * cand_presidencia / row cl;
+run;
+
+data dados_tabela_fr;
+    set resultados_fe;
+        RowVar = RowStdErr**2;
+run;
+
+proc tabulate data=dados_tabela_fe format=6.2;
+    class faixa_etaria cand_presidencia;
+    var RowPercent RowVar RowLowerCL RowUpperCL;
+    
+    table faixa_etaria,
+          cand_presidencia * (
+              RowPercent='Prop (%)'*sum='' 
+              RowVar='Var'*sum='' 
+              RowLowerCL='IC Inf'*sum='' 
+              RowUpperCL='IC Sup'*sum=''
+          );
+run;
 
