@@ -36,12 +36,15 @@ data amostra_total;
 	set amostra1 amostra2 amostra3 amostra4;
 run;
 
+/* Macro para gerar tabela com resultados de intenção de voto para cargo por categoria de varíavel explicativa*/
 %macro tabela_pesquisa(dados, var_linha, var_coluna);
+ods select none;
 ods output Crosstabs = resultados;
 proc surveyfreq data=&dados;
     tables &var_coluna * &var_linha / col cl;
 run;
 
+ods select all;
 data dados_tabela;
     set resultados;
         ColVar = ColStdErr**2;
@@ -79,6 +82,7 @@ proc delete data=dados_tabela resultados resultados_ordenado;
 run;
 %mend;
 
+/* Macro para padronizar tabela de intenção de voto para cargo por categoria de variável explicativa*/
 %macro tabela_pesquisa_padronizada(dados, var_linha, var_coluna, out_ds);
 ods output Crosstabs = resultados;
 proc surveyfreq data=&dados;
@@ -100,13 +104,16 @@ proc delete data=resultados;
 run;
 %mend;
 
+/* Macro para gerar tabela completa com intenção de para cargo por categoria de todas as variáveis explicativas */
 %macro tabela_pesquisa_empilhada(var_coluna);
 
+ods select none;
 %tabela_pesquisa_padronizada(amostra_total, faixa_renda, &var_coluna, tab_renda)
 %tabela_pesquisa_padronizada(amostra_total, sexo, &var_coluna, tab_sexo)
 %tabela_pesquisa_padronizada(amostra_total, faixa_etaria, &var_coluna, tab_idade)
 %tabela_pesquisa_padronizada(amostra_total, tipo_pesquisa, &var_coluna, tab_pesq)
 
+ods select all;
 data tabela_empilhada;
     set tab_sexo tab_idade tab_renda tab_pesq;
 run;
@@ -130,11 +137,7 @@ run;
 
 %mend;
 
-proc surveymeans data=amostra_total var clm;
-var cand_presidencia;
-domain sexo;
-run;
-
+/* Documento .pdf com os resultados*/ 
 options orientation=landscape;
 ods pdf file="~/Trabalho_Amostragem/Resultados/Relatorio_Eleitoral.pdf" style=Pearl pdftoc=1;
 
