@@ -7,12 +7,12 @@ library(fs)
 
 #Caminhos dos arquivos
 caminhos_amostras_estimuladas     <- c(
-  "amostras/Pesquisa_Eleitoral_Amostra_1.csv",
-  "amostras/Pesquisa_Eleitoral_Amostra_2.csv"
+  "amostras/amostras_csv/Pesquisa_Eleitoral_Amostra_1.csv",
+  "amostras/amostras_csv/Pesquisa_Eleitoral_Amostra_2.csv"
   )
 caminhos_amostras_nao_estimuladas <- c(
-  "amostras/Pesquisa_Eleitoral_Amostra_3.csv",
-  "amostras/Pesquisa_Eleitoral_Amostra_4.csv"
+  "amostras/amostras_csv/Pesquisa_Eleitoral_Amostra_3.csv",
+  "amostras/amostras_csv/Pesquisa_Eleitoral_Amostra_4.csv"
 )
 
 #Função para ler o arquivo .csv
@@ -41,4 +41,71 @@ dados_completos <- bind_rows(
   dados_amostras_nao_estimuladas
 )
 
+# gráfico massa po 
 
+library(tidyverse)
+
+# 1. Preparar os dados: calcular a contagem e a porcentagem por candidato
+dados_grafico <- dados_completos %>%
+  filter(!is.na(candidato_a_presidencia)) %>% # Remove valores NA, se houver
+  count(candidato_a_presidencia) %>%
+  mutate(
+    porcentagem = (n / sum(n)) * 100,
+    # Reordena os candidatos de acordo com a porcentagem (do maior para o menor)
+    candidato_a_presidencia = fct_reorder(candidato_a_presidencia, porcentagem)
+  )
+
+# 2. Definir a paleta de cores personalizada baseada nos partidos
+# (Ajuste os nomes exatamente como aparecem na sua coluna)
+cores_partidos <- c(
+  "Luiz Inácio Lula da Silva (PT)" = "#CC0000",   # Vermelho PT
+  "Flávio Bolsonaro (PL)" = "#1F4E78",             # Azul PL (ou Bolsonaro)
+  "Renan Santos (Missão)" = "#E5C158",             # Amarelo/Dourado
+  "Ronaldo Caiado (PSD)" = "#2CA02C",              # Verde 
+  "Augusto Cury (Avante)" = "#FFA500",
+  "Hertz Dias (PSTU)" = "#8B0000",
+  "Romeu Zema (Novo)" = "#FFA500",
+  "Não sei/ Não quero Responder" = "#808080",
+  "Samara Martins (UP)" = "#000000",
+  "Branco" = "#A6A6A6",                            # Cinza para Voto em Branco
+  "Nulo" = "#595959"                               # Cinza escuro para Nulo
+  # Adicione outros candidatos/partidos se houver mais na sua base
+)
+
+# 3. Gerar o gráfico no ggplot2
+ggplot(dados_grafico, aes(x = candidato_a_presidencia, y = porcentagem, fill = candidato_a_presidencia)) +
+  # geom_col cria as barras verticais (de baixo para cima)
+  geom_col(width = 0.6, show.legend = FALSE) +
+  
+  # Adiciona os rótulos de porcentagem em cima de cada barra
+  geom_text(aes(label = sprintf("%.1f%%", porcentagem)), 
+            vjust = -0.5, 
+            size = 4, 
+            fontface = "bold") +
+  
+  # Aplica as cores manuais definidas acima
+  scale_fill_manual(values = cores_partidos) +
+  
+  # Ajusta a escala do eixo Y para dar espaço aos rótulos no topo
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  
+  # Títulos e rótulos
+  labs(
+    title = "Intenção de Voto para Presidente da República",
+    subtitle = "Pesquisa Eleitoral - DF / Simulação 2026",
+    x = NULL,
+    y = "Intenção de Voto (%)",
+    caption = "Fonte: Dados da pesquisa interna"
+  ) +
+  
+  # Tema limpo e elegante
+  theme_minimal(base_size = 13) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5, size = 16),
+    plot.subtitle = element_text(hjust = 0.5, color = "gray40", size = 12),
+    axis.text.x = element_text(angle = 45, hjust = 1, face = "bold"), # Inclina o nome se forem longos
+    axis.text.y = element_blank(),                                   # Opcional: remove eixo Y se usar labels
+    axis.ticks.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor = element_blank()
+  )
