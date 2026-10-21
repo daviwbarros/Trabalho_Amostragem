@@ -36,10 +36,6 @@ data amostra_total;
 	set amostra1 amostra2 amostra3 amostra4;
 run;
 
-proc surveyfreq data=amostra_total order=freq;
-tables cand_presidencia / var cl;
-run;
-
 %macro tabela_pesquisa(dados, var_linha, var_coluna);
 ods output Crosstabs = resultados;
 proc surveyfreq data=&dados;
@@ -63,17 +59,24 @@ proc tabulate data=dados_tabela format=6.2;
               ColUpperCL='IC Sup'*sum=''
           );
 run;
+
+proc sort data=resultados out=resultados_ordenado;
+    by &var_linha descending ColPercent;
+run;
+
+proc sgplot data=resultados_ordenado;
+    vbar &var_linha / response=ColPercent
+                      group=&var_coluna
+                      groupdisplay=stack
+                      grouporder=data
+                      datalabel;
+    yaxis label="Percentual(%)";
+    keylegend / title="Candidato" location=outside position=bottom;
+run;
+
 proc delete data=dados_tabela resultados; 
 run;
 %mend;
-
-%tabela_pesquisa(amostra_total, sexo, cand_presidencia)
-%tabela_pesquisa(amostra_total, faixa_renda, cand_presidencia)
-%tabela_pesquisa(amostra_total, faixa_etaria, cand_presidencia)
-
-%tabela_pesquisa(amostra_total, sexo, cand_governador)
-%tabela_pesquisa(amostra_total, faixa_renda, cand_governador)
-%tabela_pesquisa(amostra_total, faixa_etaria, cand_governador)
 
 
 proc surveymeans data=amostra_total var clm;
@@ -81,11 +84,25 @@ var cand_presidencia;
 domain sexo;
 run;
 
-
 options orientation=landscape;
-/* 1. Define o local e o nome do arquivo PDF que será gerado */
-/* O uso de ~/ garante compatibilidade entre os membros da equipe no SAS Studio */
 ods pdf file="~/Trabalho_Amostragem/Resultados/Relatorio_Eleitoral.pdf" style=Pearl pdftoc=1;
+
+title "Intenção de Voto para Presidente";
+ods output OneWay=resultados;
+proc surveyfreq data=amostra_total order=freq;
+tables cand_presidencia / var cl;
+run;
+
+proc sgplot data=resultados;
+    vbar cand_presidencia / response=Percent 
+                            datalabel 
+                            fillattrs=(color=navy);
+    xaxis label="Candidato";
+    yaxis label="Percentual (%)" grid;
+run;
+
+proc delete data=resultados;
+run;
 
 title "Intenção de Voto para Presidente - Distribuição por Faixa Etária";
 %tabela_pesquisa(amostra_total, faixa_etaria, cand_presidencia);
@@ -95,6 +112,34 @@ title "Intenção de Voto para Presidente - Distribuição por Sexo";
 
 title "Intenção de Voto para Presidente - Distribuição por Renda";
 %tabela_pesquisa(amostra_total, faixa_renda, cand_presidencia);
+
+title "Itenção de Voto para Governador";
+ods output OneWay=resultados;
+proc surveyfreq data=amostra_total order=freq;
+tables cand_governador / var cl;
+run;
+
+proc sgplot data=resultados;
+    vbar cand_governador / response=Percent 
+                            datalabel 
+                            fillattrs=(color=navy);
+    xaxis label="Candidato";
+    yaxis label="Percentual (%)" grid;
+run;
+
+proc delete data=resultados;
+run;
+
+title "Intenção de Voto para Governador - Distribuição por Faixa Etária";
+%tabela_pesquisa(amostra_total, faixa_etaria, cand_governador);
+
+title "Intenção de Voto para Governador - Distribuição por Sexo";
+%tabela_pesquisa(amostra_total, sexo, cand_governador);
+
+title "Intenção de Voto para Governador - Distribuição por Renda";
+%tabela_pesquisa(amostra_total, faixa_renda, cand_governador);
+
+
 
 ods pdf close;
 
