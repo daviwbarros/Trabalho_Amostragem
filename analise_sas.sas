@@ -48,12 +48,13 @@ data dados_tabela;
 run;
 
 proc tabulate data=dados_tabela format=6.2;
-    class &var_linha &var_coluna;
-    var ColPercent ColVar ColLowerCL ColUpperCL;
+    class &var_linha F_&var_coluna;
+    var Frequency ColPercent ColVar ColLowerCL ColUpperCL;
     
-    table &var_coluna,
+    table F_&var_coluna,
           &var_linha * (
-              ColPercent='Prop (%)'*sum='' 
+              Frequency='N'*sum=''
+              ColPercent='Prop (%)'*sum=''
               ColVar='Var'*sum='' 
               ColLowerCL='IC Inf'*sum='' 
               ColUpperCL='IC Sup'*sum=''
@@ -74,10 +75,60 @@ proc sgplot data=resultados_ordenado;
     keylegend / title="Candidato" location=outside position=bottom;
 run;
 
-proc delete data=dados_tabela resultados; 
+proc delete data=dados_tabela resultados resultados_ordenado; 
 run;
 %mend;
 
+%macro tabela_pesquisa_padronizada(dados, var_linha, var_coluna, out_ds);
+ods output Crosstabs = resultados;
+proc surveyfreq data=&dados;
+    tables &var_linha * &var_coluna / row cl;
+run;
+
+data &out_ds (keep=Dominio Categoria F_&var_coluna Frequency RowPercent RowVar RowLowerCL RowUpperCL);
+    set resultados;
+    length Dominio $ 30 Categoria $ 50;
+    Dominio = "&var_linha";
+        
+    Categoria = put(&var_linha, $string50.);
+    if Categoria = '' then Categoria = cats(&var_linha);
+        
+    RowVar = RowStdErr**2;
+run;
+
+proc delete data=resultados; 
+run;
+%mend;
+
+%macro tabela_pesquisa_empilhada(var_coluna);
+
+%tabela_pesquisa_padronizada(amostra_total, faixa_renda, &var_coluna, tab_renda)
+%tabela_pesquisa_padronizada(amostra_total, sexo, &var_coluna, tab_sexo)
+%tabela_pesquisa_padronizada(amostra_total, faixa_etaria, &var_coluna, tab_idade)
+%tabela_pesquisa_padronizada(amostra_total, tipo_pesquisa, &var_coluna, tab_pesq)
+
+data tabela_empilhada;
+    set tab_sexo tab_idade tab_renda tab_pesq;
+run;
+
+proc tabulate data=tabela_empilhada format=6.2;
+    class Dominio Categoria F_&var_coluna;
+    var Frequency RowPercent RowVar RowLowerCL RowUpperCL;
+    
+    table Dominio * Categoria,
+          F_&var_coluna * (
+              Frequency='N'*sum=''
+              RowPercent='Prop (%)'*sum=''
+              RowVar='Var'*sum='' 
+              RowLowerCL='IC Inf'*sum='' 
+              RowUpperCL='IC Sup'*sum=''
+          );
+run;
+
+proc delete data=tabela_empilhada tab_renda tab_sexo tab_idade tab_pesq;
+run;
+
+%mend;
 
 proc surveymeans data=amostra_total var clm;
 var cand_presidencia;
@@ -113,7 +164,13 @@ title "Intenção de Voto para Presidente - Distribuição por Sexo";
 title "Intenção de Voto para Presidente - Distribuição por Renda";
 %tabela_pesquisa(amostra_total, faixa_renda, cand_presidencia);
 
-title "Itenção de Voto para Governador";
+title "Intenção de Voto para Presedente - Distribuição por Tipo de Pesquisa";
+%tabela_pesquisa(amostra_total, tipo_pesquisa, cand_presidencia);
+
+title "Intenção de Voto para Presidente - Tabela Resumida";
+%tabela_pesquisa_empilhada(cand_presidencia)
+
+title "Intenção de Voto para Governador";
 ods output OneWay=resultados;
 proc surveyfreq data=amostra_total order=freq;
 tables cand_governador / var cl;
@@ -139,7 +196,11 @@ title "Intenção de Voto para Governador - Distribuição por Sexo";
 title "Intenção de Voto para Governador - Distribuição por Renda";
 %tabela_pesquisa(amostra_total, faixa_renda, cand_governador);
 
+title "Intenção de Voto para Governador - Distribuição por Tipo de Pesquisa";
+%tabela_pesquisa(amostra_total, tipo_pesquisa, cand_presidencia);
 
+title "Intenção de Voto para Governador - Tabela Resumida";
+%tabela_pesquisa_empilhada(cand_governador)
 
 ods pdf close;
 
