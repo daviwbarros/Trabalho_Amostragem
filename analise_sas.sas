@@ -36,12 +36,30 @@ data amostra_total;
 	set amostra1 amostra2 amostra3 amostra4;
 run;
 
+
+/* 1. Executa o surveyfreq capturando a tabela de qui-quadrado */
+ods select none;
+ods output Chisq = resultado_chisq;
+proc freq data=amostra_total;
+    tables cand_presidencia * sexo / chisq;
+run;
+ods select all;
+
+proc print data=resultado_chisq;
+run;
+
+
 /* Macro para gerar tabela com resultados de intenção de voto para cargo por categoria de varíavel explicativa*/
 %macro tabela_pesquisa(dados, var_linha, var_coluna);
 ods select none;
 ods output Crosstabs = resultados;
 proc surveyfreq data=&dados;
     tables &var_coluna * &var_linha / col cl;
+run;
+
+ods output ChiSq = resultado_chisq_freq;
+proc freq data=&dados;
+    tables &var_coluna * &var_linha / chisq;
 run;
 
 ods select all;
@@ -76,6 +94,41 @@ proc sgplot data=resultados_ordenado;
                       datalabel;
     yaxis label="Percentual(%)";
     keylegend / title="Candidato" location=outside position=bottom;
+run;
+
+proc sgplot data=dados_tabela;
+    scatter x=&var_coluna y=ColPercent / group=&var_linha
+                                           groupdisplay=cluster 
+                                           clusterwidth=0.8
+                                           yerrorlower=ColLowerCL 
+                                           yerrorupper=ColUpperCL
+                                           markerattrs=(symbol=circlefilled size=5);
+                                           
+    xaxis label="Candidato" discreteorder=data;
+    yaxis label="Proporção Estimada (%)" grid;
+    keylegend / location=outside position=bottom;
+run;
+
+proc report data=resultado_chisq_freq nowd headline headskip;
+    column Statistic DF Value Prob;
+    
+    define Statistic / display "Estatística do Teste" 
+                       style={cellwidth=45%};
+                       
+    define DF        / display "Graus de Liberdade (GL)" 
+                       style={cellwidth=15% just=center};
+                       
+    define Value     / display "Estatística Calculada" 
+                       format=8.4 
+                       style={cellwidth=20% just=right};
+                       
+    define Prob      / display "P-valor" 
+                       format=PVALUE6.4 
+                       style={cellwidth=20% just=right};
+
+    compute after;
+        line "Nota: Nível de significância adotado de 5% (p < 0,05 indica associação estatisticamente significativa).";
+    endcomp;
 run;
 
 proc delete data=dados_tabela resultados resultados_ordenado; 
