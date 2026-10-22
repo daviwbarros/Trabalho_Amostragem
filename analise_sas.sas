@@ -37,17 +37,6 @@ data amostra_total;
 run;
 
 
-/* 1. Executa o surveyfreq capturando a tabela de qui-quadrado */
-ods select none;
-ods output Chisq = resultado_chisq;
-proc freq data=amostra_total;
-    tables cand_presidencia * sexo / chisq;
-run;
-ods select all;
-
-proc print data=resultado_chisq;
-run;
-
 
 /* Macro para gerar tabela com resultados de intenção de voto para cargo por categoria de varíavel explicativa*/
 %macro tabela_pesquisa(dados, var_linha, var_coluna);
