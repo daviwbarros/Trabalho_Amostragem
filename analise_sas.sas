@@ -153,11 +153,13 @@ ods select none;
 %tabela_pesquisa_padronizada(amostra_total, faixa_renda, &var_coluna, tab_renda)
 %tabela_pesquisa_padronizada(amostra_total, sexo, &var_coluna, tab_sexo)
 %tabela_pesquisa_padronizada(amostra_total, faixa_etaria, &var_coluna, tab_idade)
+%tabela_pesquisa_padronizada(amostra_total, horario, &var_coluna, tab_horario)
 %tabela_pesquisa_padronizada(amostra_total, tipo_pesquisa, &var_coluna, tab_pesq)
+
 
 ods select all;
 data tabela_empilhada;
-    set tab_sexo tab_idade tab_renda tab_pesq;
+    set tab_sexo tab_idade tab_renda tab_horario tab_pesq;
 run;
 
 proc tabulate data=tabela_empilhada format=6.2;
@@ -209,6 +211,9 @@ title "Intenção de Voto para Presidente - Distribuição por Sexo";
 title "Intenção de Voto para Presidente - Distribuição por Renda";
 %tabela_pesquisa(amostra_total, faixa_renda, cand_presidencia);
 
+title "Intenção de Voto para Presidente - Distribuição por Horário";
+%tabela_pesquisa(amostra_total, horario, cand_presidencia);
+
 title "Intenção de Voto para Presedente - Distribuição por Tipo de Pesquisa";
 %tabela_pesquisa(amostra_total, tipo_pesquisa, cand_presidencia);
 
@@ -240,6 +245,9 @@ title "Intenção de Voto para Governador - Distribuição por Sexo";
 
 title "Intenção de Voto para Governador - Distribuição por Renda";
 %tabela_pesquisa(amostra_total, faixa_renda, cand_governador);
+
+title "Intenção de Voto para Governador - Distribuição por Horário";
+%tabela_pesquisa(amostra_total, horario, cand_governador);
 
 title "Intenção de Voto para Governador - Distribuição por Tipo de Pesquisa";
 %tabela_pesquisa(amostra_total, tipo_pesquisa, cand_presidencia);
