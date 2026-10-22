@@ -214,7 +214,7 @@ title "Intenção de Voto para Presidente - Distribuição por Renda";
 title "Intenção de Voto para Presidente - Distribuição por Horário";
 %tabela_pesquisa(amostra_total, horario, cand_presidencia);
 
-title "Intenção de Voto para Presedente - Distribuição por Tipo de Pesquisa";
+title "Intenção de Voto para Presidente - Distribuição por Tipo de Pesquisa";
 %tabela_pesquisa(amostra_total, tipo_pesquisa, cand_presidencia);
 
 title "Intenção de Voto para Presidente - Tabela Resumida";
@@ -250,7 +250,7 @@ title "Intenção de Voto para Governador - Distribuição por Horário";
 %tabela_pesquisa(amostra_total, horario, cand_governador);
 
 title "Intenção de Voto para Governador - Distribuição por Tipo de Pesquisa";
-%tabela_pesquisa(amostra_total, tipo_pesquisa, cand_presidencia);
+%tabela_pesquisa(amostra_total, tipo_pesquisa, cand_governador);
 
 title "Intenção de Voto para Governador - Tabela Resumida";
 %tabela_pesquisa_empilhada(cand_governador)
